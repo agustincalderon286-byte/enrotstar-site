@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contacto | Enrot Star</title>
+    <meta
+      name="description"
+      content="Pagina de contacto de Enrot Star."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body data-page="contact">
+    <div class="site-wrap">
+      <div data-site-header></div>
+
+      <main>
+        <section class="page-hero">
+          <div class="container page-hero-grid">
+            <article class="page-hero-card stack">
+              <span class="eyebrow">Contacto</span>
+              <h1 class="page-title">Lo mejor en utensilios para cocinas a un clic.</h1>
+              <p class="page-copy">
+                Comunicate con nosotros y recibe atencion personalizada sobre nuestros productos,
+                presentaciones y oportunidades.
+              </p>
+            </article>
+            <article class="page-hero-card stack">
+              <div class="social-row">
+                <a href="https://www.facebook.com/676483075558148" target="_blank" rel="noopener">Facebook</a>
+                <a href="https://www.instagram.com/enrotstar1_vip?igsh=ZHdybjFjeTU1ZHYw&utm_source=qr" target="_blank" rel="noopener">Instagram</a>
+                <a href="https://www.x.com/enrotstar?s=21" target="_blank" rel="noopener">X</a>
+                <a href="https://www.youtube.com/@enrotstar?si=sGBlqfaNKj9tMh2Y" target="_blank" rel="noopener">YouTube</a>
+              </div>
+              <div class="btn-row">
+                <a class="btn btn-primary" href="https://wa.me/12245739444" target="_blank" rel="noopener">
+                  Enviarnos un mensaje
+                </a>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section section-paper">
+          <div class="container contact-grid">
+            <aside class="contact-panel stack">
+              <span class="eyebrow">Informacion</span>
+              <h2 class="section-title">Cuentanos que necesitas.</h2>
+              <div class="contact-quicklinks">
+                <a class="quicklink" href="https://wa.me/12245739444" target="_blank" rel="noopener">
+                  <span>WhatsApp</span>
+                  <strong>Enviar mensaje</strong>
+                </a>
+                <a class="quicklink" href="tel:12245739444">
+                  <span>Telefono</span>
+                  <strong>224 573 9444</strong>
+                </a>
+                <div class="quicklink">
+                  <span>Direccion</span>
+                  <strong>800 Enterprise Dr, Oak Brook, IL 60523</strong>
+                </div>
+              </div>
+              <p class="section-copy">
+                Completa el formulario y continua la conversacion con nuestro equipo.
+              </p>
+            </aside>
+
+            <section class="form-shell stack">
+              <span class="eyebrow">Formulario</span>
+              <form class="form-grid two-col" data-whatsapp-form data-form-type="contacto">
+                <div class="field">
+                  <label class="label" for="contact-name">Nombre</label>
+                  <input id="contact-name" name="Nombre" data-label="Nombre" type="text" required />
+                </div>
+                <div class="field">
+                  <label class="label" for="contact-phone">Telefono</label>
+                  <input id="contact-phone" name="Telefono" data-label="Telefono" type="tel" />
+                </div>
+                <div class="field full">
+                  <label class="label" for="contact-email">Correo electronico</label>
+                  <input id="contact-email" name="Correo electronico" data-label="Correo electronico" type="email" />
+                </div>
+                <div class="field full">
+                  <label class="label" for="contact-message">Mensaje</label>
+                  <textarea
+                    id="contact-message"
+                    name="Mensaje"
+                    data-label="Mensaje"
+                    placeholder="Quiero recibir informacion sobre sus productos o presentaciones."
+                  ></textarea>
+                </div>
+                <div class="field full">
+                  <button class="btn btn-primary" type="submit">Enviar mensaje</button>
+                  <div class="form-status" data-form-status></div>
+                  <div class="form-note">
+                    Tu mensaje continuara por WhatsApp para una atencion mas rapida.
+                  </div>
+                </div>
+              </form>
+            </section>
+          </div>
+        </section>
+      </main>
+
+      <div data-site-footer></div>
+    </div>
+
+    <script src="../script.js"></script>
+  </body>
+</html>
