@@ -16,7 +16,11 @@
     />
     <link rel="stylesheet" href="../styles.css" />
   </head>
-  <body data-page="careers">
+  <body
+    data-page="careers"
+    data-coach-api-base="https://ventas-ia.onrender.com"
+    data-coach-recruitment-share-code="7d637252"
+  >
     <div class="site-wrap">
       <div data-site-header></div>
 
@@ -152,6 +156,16 @@
 
             <section class="form-shell stack">
               <form class="form-grid two-col" data-whatsapp-form data-form-type="empleo">
+                <div class="field" style="display: none" aria-hidden="true">
+                  <label class="label" for="landing-website">Website</label>
+                  <input
+                    id="landing-website"
+                    name="Website"
+                    type="text"
+                    tabindex="-1"
+                    autocomplete="off"
+                  />
+                </div>
                 <div class="field">
                   <label class="label" for="landing-name">Nombre</label>
                   <input id="landing-name" name="Nombre" data-label="Nombre" type="text" required />
@@ -192,7 +206,7 @@
                   <button class="btn btn-primary" type="submit">Continuar postulacion</button>
                   <div class="form-status" data-form-status></div>
                   <div class="form-note">
-                    Al enviar, se abrira WhatsApp para continuar tu postulacion.
+                    Al enviar, tu solicitud quedara guardada para seguimiento de nuestro equipo.
                   </div>
                 </div>
               </form>

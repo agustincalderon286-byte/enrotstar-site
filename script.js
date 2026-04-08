@@ -20,6 +20,11 @@ const ENROTSTAR_SITE = {
   ]
 };
 
+const ENROTSTAR_RECRUITMENT = {
+  defaultCoachApiBase: "https://ventas-ia.onrender.com",
+  defaultShareCode: "7d637252",
+};
+
 let googleAdsTrackingPromise = null;
 
 function getGoogleAdsTrackingUrl() {
@@ -80,6 +85,185 @@ function fireGoogleAdsConversion(conversionKey, callback) {
 
     done();
   });
+}
+
+function getRecruitmentConfig() {
+  const body = document.body;
+  const apiBase = String(body?.dataset.coachApiBase || ENROTSTAR_RECRUITMENT.defaultCoachApiBase)
+    .trim()
+    .replace(/\/+$/, "");
+  const shareCode = String(
+    body?.dataset.coachRecruitmentShareCode || ENROTSTAR_RECRUITMENT.defaultShareCode
+  ).trim();
+
+  return {
+    apiBase,
+    shareCode,
+    endpoint:
+      apiBase && shareCode
+        ? `${apiBase}/api/public/recruitment-share/${encodeURIComponent(shareCode)}/applications`
+        : "",
+  };
+}
+
+function getNamedFieldValue(form, names = []) {
+  for (const name of names) {
+    const field = form.querySelector(`[name="${name}"]`);
+
+    if (!field) {
+      continue;
+    }
+
+    if (field instanceof HTMLInputElement && field.type === "checkbox") {
+      return field.checked ? String(field.value || "si").trim() : "";
+    }
+
+    return String(field.value || "").trim();
+  }
+
+  return "";
+}
+
+function getSelectedFileNames(form) {
+  return Array.from(form.querySelectorAll('input[type="file"]')).flatMap((input) =>
+    Array.from(input.files || [])
+      .map((file) => String(file.name || "").trim())
+      .filter(Boolean)
+  );
+}
+
+function readCampaignTrackingParams() {
+  const params = new URLSearchParams(window.location.search);
+
+  return {
+    utmSource: params.get("utm_source")?.trim() || "",
+    utmMedium: params.get("utm_medium")?.trim() || "",
+    utmCampaign: params.get("utm_campaign")?.trim() || "",
+    utmTerm: params.get("utm_term")?.trim() || "",
+    utmContent: params.get("utm_content")?.trim() || "",
+    gclid: params.get("gclid")?.trim() || "",
+    fbclid: params.get("fbclid")?.trim() || "",
+    ttclid: params.get("ttclid")?.trim() || "",
+  };
+}
+
+function inferRecruitmentSource(tracking) {
+  if (tracking.utmSource) {
+    return tracking.utmSource.toLowerCase();
+  }
+
+  if (tracking.gclid) {
+    return "google_ads";
+  }
+
+  if (tracking.fbclid) {
+    return "facebook_ads";
+  }
+
+  if (tracking.ttclid) {
+    return "tiktok_ads";
+  }
+
+  return "enrotstar_site";
+}
+
+function buildRecruitmentPayload(form) {
+  const tracking = readCampaignTrackingParams();
+  const role = getNamedFieldValue(form, ["Cargo", "Vacante de interes"]);
+  const city = getNamedFieldValue(form, ["Ciudad o zona"]);
+  const zipCode = getNamedFieldValue(form, ["Codigo postal"]);
+  const experience = getNamedFieldValue(form, ["Experiencia"]);
+  const fileNames = getSelectedFileNames(form);
+  const aboutParts = [];
+
+  if (experience) {
+    aboutParts.push(experience);
+  }
+
+  if (fileNames.length) {
+    aboutParts.push(`Archivos seleccionados: ${fileNames.join(", ")}`);
+  }
+
+  return {
+    fullName: getNamedFieldValue(form, ["Nombre"]),
+    phone: getNamedFieldValue(form, ["Telefono"]),
+    email: getNamedFieldValue(form, ["Correo electronico"]),
+    positionApplied: role,
+    workPreference: role,
+    city,
+    zipCode,
+    about: aboutParts.join("\n\n"),
+    source: inferRecruitmentSource(tracking),
+    sourceDetail: window.location.pathname,
+    landingPageUrl: window.location.href,
+    referrerUrl: document.referrer || "",
+    pageTitle: document.title || "",
+    website: getNamedFieldValue(form, ["Website", "Empresa"]),
+    ...tracking,
+  };
+}
+
+async function submitRecruitmentForm(form, status, fileCount) {
+  const config = getRecruitmentConfig();
+  const submitButton = form.querySelector('button[type="submit"]');
+  const originalLabel = submitButton?.textContent || "";
+
+  if (!config.endpoint) {
+    throw new Error("La captura de reclutamiento no esta configurada.");
+  }
+
+  const payload = buildRecruitmentPayload(form);
+
+  if (!payload.fullName) {
+    throw new Error("Escribe tu nombre.");
+  }
+
+  if (!payload.phone && !payload.email) {
+    throw new Error("Comparte tu telefono o tu correo.");
+  }
+
+  if (status) {
+    status.textContent = "Guardando tu solicitud...";
+  }
+
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.textContent = "Enviando...";
+  }
+
+  try {
+    const response = await fetch(config.endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(data.error || "No pude guardar tu solicitud.");
+    }
+
+    form.reset();
+
+    if (fileCount) {
+      fileCount.textContent = "0 archivo(s) seleccionado(s)";
+    }
+
+    if (status) {
+      status.textContent =
+        "Tu solicitud ya quedo registrada. Nuestro equipo la revisara y te contactara pronto.";
+    }
+
+    fireGoogleAdsConversion("jobApplication");
+    return data;
+  } finally {
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.textContent = originalLabel || "Enviar";
+    }
+  }
 }
 
 function buildNav(currentPage) {
@@ -226,6 +410,16 @@ function setupWhatsAppForms() {
     form.addEventListener("submit", (event) => {
       event.preventDefault();
       const kind = form.dataset.formType || "contacto";
+
+      if (kind === "empleo") {
+        submitRecruitmentForm(form, status, fileCount).catch((error) => {
+          if (status) {
+            status.textContent = error.message || "No pude guardar tu solicitud.";
+          }
+        });
+        return;
+      }
+
       const message = getWhatsAppMessage(form);
       const url = `https://wa.me/${ENROTSTAR_SITE.phoneRaw}?text=${encodeURIComponent(message)}`;
       let hasOpened = false;
