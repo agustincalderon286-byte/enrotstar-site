@@ -20,6 +20,68 @@ const ENROTSTAR_SITE = {
   ]
 };
 
+let googleAdsTrackingPromise = null;
+
+function getGoogleAdsTrackingUrl() {
+  if (document.currentScript?.src) {
+    return new URL("google-ads-tracking.js", document.currentScript.src).toString();
+  }
+
+  return `${window.location.origin}/google-ads-tracking.js`;
+}
+
+function ensureGoogleAdsTracking() {
+  if (typeof window.enrotstarTrackGoogleAdsConversion === "function") {
+    return Promise.resolve(window.ENROTSTAR_GOOGLE_ADS || null);
+  }
+
+  if (googleAdsTrackingPromise) {
+    return googleAdsTrackingPromise;
+  }
+
+  googleAdsTrackingPromise = new Promise((resolve) => {
+    const existingScript = document.querySelector('script[data-enrotstar-google-ads="true"]');
+
+    if (existingScript) {
+      existingScript.addEventListener("load", () => resolve(window.ENROTSTAR_GOOGLE_ADS || null), {
+        once: true,
+      });
+      existingScript.addEventListener("error", () => resolve(null), { once: true });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = getGoogleAdsTrackingUrl();
+    script.dataset.enrotstarGoogleAds = "true";
+    script.addEventListener("load", () => resolve(window.ENROTSTAR_GOOGLE_ADS || null), {
+      once: true,
+    });
+    script.addEventListener("error", () => resolve(null), { once: true });
+    document.head.appendChild(script);
+  });
+
+  return googleAdsTrackingPromise;
+}
+
+function fireGoogleAdsConversion(conversionKey, callback) {
+  const done = typeof callback === "function" ? callback : () => {};
+
+  if (typeof window.enrotstarTrackGoogleAdsConversion === "function") {
+    window.enrotstarTrackGoogleAdsConversion(conversionKey, { callback: done });
+    return;
+  }
+
+  ensureGoogleAdsTracking().then(() => {
+    if (typeof window.enrotstarTrackGoogleAdsConversion === "function") {
+      window.enrotstarTrackGoogleAdsConversion(conversionKey, { callback: done });
+      return;
+    }
+
+    done();
+  });
+}
+
 function buildNav(currentPage) {
   return ENROTSTAR_SITE.nav
     .map(
@@ -163,18 +225,45 @@ function setupWhatsAppForms() {
 
     form.addEventListener("submit", (event) => {
       event.preventDefault();
+      const kind = form.dataset.formType || "contacto";
       const message = getWhatsAppMessage(form);
       const url = `https://wa.me/${ENROTSTAR_SITE.phoneRaw}?text=${encodeURIComponent(message)}`;
+      let hasOpened = false;
+
+      const openWhatsApp = () => {
+        if (hasOpened) return;
+        hasOpened = true;
+        window.open(url, "_blank", "noopener");
+      };
 
       if (status) {
         status.textContent = "Abriendo WhatsApp...";
       }
 
-      window.open(url, "_blank", "noopener");
+      window.setTimeout(openWhatsApp, 900);
+      fireGoogleAdsConversion(kind === "empleo" ? "jobApplication" : "whatsappContact", openWhatsApp);
     });
   });
 }
 
+function setupTrackedContactLinks() {
+  const links = document.querySelectorAll('a[href^="tel:"], a[href*="wa.me/"]');
+
+  links.forEach((link) => {
+    if (link.dataset.googleAdsTracked === "true") {
+      return;
+    }
+
+    link.dataset.googleAdsTracked = "true";
+    link.addEventListener("click", () => {
+      const href = link.getAttribute("href") || "";
+      fireGoogleAdsConversion(href.startsWith("tel:") ? "phoneClick" : "whatsappContact");
+    });
+  });
+}
+
+ensureGoogleAdsTracking();
 injectSharedChrome();
 setupMenuToggle();
 setupWhatsAppForms();
+setupTrackedContactLinks();
