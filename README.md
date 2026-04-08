@@ -2,6 +2,8 @@
 
 Sitio estatico de Enrot Star preparado para publicarse en GitHub y Render.
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/agustincalderon286-byte/enrotstar-site)
+
 ## Estructura
 
 - `index.html`: pagina principal
@@ -19,4 +21,3 @@ Sitio estatico de Enrot Star preparado para publicarse en GitHub y Render.
 1. Conecta este repositorio en Render.
 2. Crea un nuevo Static Site o un Blueprint desde `render.yaml`.
 3. Publica el sitio y, cuando lo deseen, agrega el dominio final.
-
